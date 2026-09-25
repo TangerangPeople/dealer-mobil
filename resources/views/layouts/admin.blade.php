@@ -27,6 +27,12 @@
                     <a href="{{ route('admin.dashboard') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.dashboard'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.dashboard')])>
                         Dashboard
                     </a>
+                    <a href="{{ route('admin.categories.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.categories.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.categories.*')])>
+                        Kategori Kendaraan
+                    </a>
+                    <a href="{{ route('admin.vehicles.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.vehicles.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.vehicles.*')])>
+                        Kendaraan
+                    </a>
                 </nav>
             </aside>
 
