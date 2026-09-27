@@ -33,6 +33,18 @@
                     <a href="{{ route('admin.vehicles.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.vehicles.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.vehicles.*')])>
                         Kendaraan
                     </a>
+                    <a href="{{ route('admin.promotions.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.promotions.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.promotions.*')])>
+                        Promo
+                    </a>
+                    <a href="{{ route('admin.sales.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.sales.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.sales.*')])>
+                        Sales
+                    </a>
+                    <a href="{{ route('admin.galleries.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.galleries.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.galleries.*')])>
+                        Galeri
+                    </a>
+                    <a href="{{ route('admin.dealer-settings.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.dealer-settings.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.dealer-settings.*')])>
+                        Pengaturan Dealer
+                    </a>
                 </nav>
             </aside>
 

@@ -32,9 +32,9 @@ class VehicleImageRequest extends FormRequest
         ];
     }
 
-    public function after(): array
+    public function withValidator($validator): void
     {
-        return [function ($validator): void {
+        $validator->after(function ($validator): void {
             $vehicle = $this->route('vehicle');
             $image = $this->route('vehicleImage');
 
@@ -64,6 +64,6 @@ class VehicleImageRequest extends FormRequest
             if ($vehicle->status === 'available' && ! $willHavePrimary) {
                 $validator->errors()->add('is_primary', 'Kendaraan available wajib memiliki minimal satu foto utama.');
             }
-        }];
+        });
     }
 }

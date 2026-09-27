@@ -17,13 +17,9 @@ class VehicleRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $name = trim((string) $this->input('name'));
-        $slugSource = filled($this->input('slug')) ? $this->input('slug') : $name;
+        $slugSource = filled($this->input('slug')) ? $this->input('slug') : $this->input('name');
 
         $this->merge([
-            'brand' => trim((string) $this->input('brand')),
-            'name' => $name,
-            'type' => trim((string) $this->input('type')),
             'slug' => Str::slug((string) $slugSource),
             'is_featured' => $this->boolean('is_featured'),
         ]);
@@ -38,13 +34,15 @@ class VehicleRequest extends FormRequest
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')->where(fn ($query) => $query->where('is_active', true)->whereNull('deleted_at')),
+                Rule::exists('categories', 'id')->where(function ($query): void {
+                    $query->where('is_active', true)->whereNull('deleted_at');
+                }),
             ],
             'brand' => ['required', 'string', 'max:100'],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'string', 'max:100'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('vehicles', 'slug')->ignore($vehicleId)],
-            'year' => ['required', 'integer', 'min:1900', 'max:'.now()->addYear()->year],
+            'year' => ['required', 'integer', 'min:1900', 'max:'.(int) now()->addYear()->year],
             'price' => ['required', 'numeric', 'min:0'],
             'color' => ['nullable', 'string', 'max:50'],
             'transmission' => ['nullable', 'string', 'max:30'],
@@ -53,71 +51,56 @@ class VehicleRequest extends FormRequest
             'status' => ['required', Rule::in(['available', 'sold', 'reserved', 'inactive'])],
             'description' => ['nullable', 'string'],
             'is_featured' => ['boolean'],
-            'images' => ['nullable', 'array', 'max:8'],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=600,min_height=400,max_width=5000,max_height=5000'],
-            'image_alt_texts' => ['nullable', 'array'],
+            'images' => ['sometimes', 'array'],
+            'images.*' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=600,min_height=400,max_width=5000,max_height=5000'],
+            'image_alt_texts' => ['sometimes', 'array'],
             'image_alt_texts.*' => ['nullable', 'string', 'max:255'],
-            'image_sort_orders' => ['nullable', 'array'],
+            'image_sort_orders' => ['sometimes', 'array'],
             'image_sort_orders.*' => ['nullable', 'integer', 'min:0'],
             'primary_image_index' => ['nullable', 'integer', 'min:0'],
         ];
     }
 
-    public function after(): array
+    public function withValidator($validator): void
     {
-        return [function ($validator): void {
-            $files = $this->file('images', []);
-            $altTexts = $this->input('image_alt_texts', []);
-            $sortOrders = $this->input('image_sort_orders', []);
-            $primaryIndex = $this->input('primary_image_index');
+        $validator->after(function ($validator): void {
+            $status = (string) $this->input('status');
+            $featured = $this->boolean('is_featured');
 
-            foreach ($files as $index => $file) {
-                if ($file === null) {
-                    continue;
-                }
-
-                if (blank($altTexts[$index] ?? null)) {
-                    $validator->errors()->add("image_alt_texts.{$index}", 'Alt text wajib diisi untuk setiap foto yang diunggah.');
-                }
-
-                if (! array_key_exists($index, $sortOrders) || $sortOrders[$index] === '') {
-                    $validator->errors()->add("image_sort_orders.{$index}", 'Urutan wajib diisi untuk setiap foto yang diunggah.');
-                }
-            }
-
-            $hasIncomingPrimary = $primaryIndex !== null && array_key_exists((int) $primaryIndex, $files);
-            $vehicle = $this->route('vehicle');
-            $hasExistingPrimary = $vehicle instanceof Vehicle && $vehicle->primaryImage()->exists();
-
-            if ($this->input('status') === 'available' && ! $hasIncomingPrimary && ! $hasExistingPrimary) {
-                $validator->errors()->add('status', 'Kendaraan available wajib memiliki minimal satu foto utama.');
-            }
-
-            if ($primaryIndex !== null && ! $hasIncomingPrimary) {
-                $validator->errors()->add('primary_image_index', 'Pilih foto utama dari file yang benar-benar diunggah.');
-            }
-
-            if ($this->boolean('is_featured') && $this->input('status') === 'inactive') {
+            if ($featured && $status === 'inactive') {
                 $validator->errors()->add('is_featured', 'Kendaraan inactive tidak dapat ditandai sebagai featured.');
             }
-        }];
+
+            $vehicle = $this->route('vehicle');
+            if ($vehicle instanceof Vehicle && $status === 'available') {
+                $hasPrimary = $vehicle->primaryImage()->exists();
+
+                if (! $hasPrimary && ! $this->hasPrimaryImageFromUpload()) {
+                    $validator->errors()->add('status', 'Kendaraan available wajib memiliki minimal satu foto utama.');
+                }
+            }
+
+            $categoryId = $this->input('category_id');
+            if (filled($categoryId)) {
+                $category = Category::withTrashed()->find($categoryId);
+
+                if ($category && (! $category->is_active || ! is_null($category->deleted_at))) {
+                    $validator->errors()->add('category_id', 'Kategori kendaraan harus aktif dan belum dihapus.');
+                }
+            }
+        });
     }
 
-    public function attributes(): array
+    protected function hasPrimaryImageFromUpload(): bool
     {
-        return [
-            'category_id' => 'kategori',
-            'brand' => 'merek',
-            'name' => 'nama kendaraan',
-            'type' => 'tipe',
-            'slug' => 'slug',
-            'year' => 'tahun',
-            'price' => 'harga',
-            'engine_capacity' => 'kapasitas mesin',
-            'mileage' => 'kilometer',
-            'status' => 'status',
-            'is_featured' => 'featured',
-            'images.*' => 'foto kendaraan',
-        ];
+        $primaryIndex = $this->input('primary_image_index');
+
+        if (! is_numeric($primaryIndex)) {
+            return false;
+        }
+
+        $index = (int) $primaryIndex;
+
+        return $this->hasFile("images.{$index}") || $this->boolean("is_primary_{$index}");
     }
 }
