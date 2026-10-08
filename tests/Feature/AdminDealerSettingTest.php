@@ -224,6 +224,56 @@ class AdminDealerSettingTest extends TestCase
         Storage::disk('public')->assertMissing('dealer/hero/current-hero.png');
     }
 
+    public function test_stale_image_paths_do_not_render_preview_urls(): void
+    {
+        Storage::fake('public');
+
+        $setting = DealerSetting::query()->create([
+            'id' => 1,
+            'dealer_name' => 'Dealer Development',
+            'address' => 'Jl. Raya Bandung',
+            'phone' => '620000000000',
+            'email' => 'dealer@example.test',
+            'whatsapp' => '620000000000',
+            'logo_path' => 'dealer/logo/missing-logo.png',
+            'hero_image_path' => 'dealer/hero/missing-hero.png',
+        ]);
+
+        $this->assertNull($setting->logo_url);
+        $this->assertNull($setting->hero_image_url);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dealer-settings.index'))
+            ->assertOk()
+            ->assertDontSee('alt="Hero dealer"', false);
+    }
+
+    public function test_admin_preview_uses_public_storage_url_for_existing_hero_image(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('dealer/hero/valid-hero.png', 'image bytes');
+
+        DealerSetting::query()->create([
+            'id' => 1,
+            'dealer_name' => 'Dealer Development',
+            'address' => 'Jl. Raya Bandung',
+            'phone' => '620000000000',
+            'email' => 'dealer@example.test',
+            'whatsapp' => '620000000000',
+            'hero_image_path' => 'dealer/hero/valid-hero.png',
+        ]);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dealer-settings.index'))
+            ->assertOk()
+            ->assertSee('src="/storage/dealer/hero/valid-hero.png"', false)
+            ->assertSee('alt="Hero dealer"', false);
+    }
+
     public function test_dealer_settings_routes_exist_for_edit_and_update_but_not_delete(): void
     {
         $this->assertTrue(Route::has('admin.dealer-settings.index'));

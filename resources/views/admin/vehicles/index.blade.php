@@ -125,7 +125,7 @@
                                 <td class="whitespace-nowrap px-4 py-4">{{ $vehicle->created_at->format('d M Y') }}</td>
                                 <td class="px-4 py-4">
                                     <div class="flex items-center justify-end gap-4">
-                                        <a href="{{ route('admin.vehicles.edit', $vehicle) }}" class="font-semibold underline underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#262626] focus:ring-offset-2">Edit<span class="sr-only"> {{ $vehicle->name }}</span></a>
+                                        <a href="{{ route('admin.vehicles.edit', $vehicle, false) }}" class="font-semibold underline underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#262626] focus:ring-offset-2">Edit<span class="sr-only"> {{ $vehicle->name }}</span></a>
                                         <form method="POST" action="{{ route('admin.vehicles.destroy', $vehicle) }}" onsubmit="return confirm('Hapus kendaraan {{ addslashes($vehicle->name) }}?');">
                                             @csrf
                                             @method('DELETE')

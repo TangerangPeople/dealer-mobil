@@ -45,6 +45,15 @@
                     <a href="{{ route('admin.dealer-settings.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.dealer-settings.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.dealer-settings.*')])>
                         Pengaturan Dealer
                     </a>
+                    <a href="{{ route('admin.service-packages.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.service-packages.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.service-packages.*')])>
+                        Paket Servis
+                    </a>
+                    <a href="{{ route('admin.service-bookings.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.service-bookings.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.service-bookings.*')])>
+                        Booking Service
+                    </a>
+                    <a href="{{ route('admin.purchase-applications.index') }}" @class(['block border-l-2 px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]', 'border-white bg-white text-[#262626]' => request()->routeIs('admin.purchase-applications.*'), 'border-transparent text-white hover:border-[#bbbbbb]' => ! request()->routeIs('admin.purchase-applications.*')])>
+                        Pengajuan Pembelian
+                    </a>
                 </nav>
             </aside>
 

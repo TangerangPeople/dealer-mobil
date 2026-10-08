@@ -9,6 +9,7 @@ use App\Models\Gallery;
 use App\Models\Promotion;
 use App\Models\Sale;
 use App\Models\Vehicle;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -121,6 +122,7 @@ class PublicPageController extends Controller
 
     public function vehiclesIndex(Request $request): View
     {
+        $settings = $this->dealerSettings();
         $query = Vehicle::query()
             ->with(['category', 'primaryImage'])
             ->whereNull('deleted_at')
@@ -136,11 +138,12 @@ class PublicPageController extends Controller
         $categories =
             Category::query()->whereNull('deleted_at')->where('is_active', true)->orderBy('name')->get();
 
-        return view('public.vehicles.index', compact('vehicles', 'categories'));
+        return view('public.vehicles.index', compact('settings', 'vehicles', 'categories'));
     }
 
     public function vehicleShow(string $vehicle): View
     {
+        $settings = $this->dealerSettings();
         $vehicleModel = Vehicle::query()
             ->with(['category', 'images', 'primaryImage'])
             ->whereNull('deleted_at')
@@ -155,12 +158,19 @@ class PublicPageController extends Controller
             ->orderByDesc('id')
             ->limit(3)
             ->get();
+        $relatedPromotion = Promotion::query()
+            ->whereNull('deleted_at')
+            ->where('is_active', true)
+            ->where('vehicle_id', $vehicleModel->id)
+            ->orderByDesc('id')
+            ->first();
 
-        return view('public.vehicles.show', compact('vehicleModel', 'relatedVehicles'));
+        return view('public.vehicles.show', compact('settings', 'vehicleModel', 'relatedVehicles', 'relatedPromotion'));
     }
 
     public function promotionsIndex(): View
     {
+        $settings = $this->dealerSettings();
         $promotions = Promotion::query()
             ->with('vehicle')
             ->whereNull('deleted_at')
@@ -170,11 +180,12 @@ class PublicPageController extends Controller
             ->orderByDesc('id')
             ->paginate(6);
 
-        return view('public.promotions.index', compact('promotions'));
+        return view('public.promotions.index', compact('settings', 'promotions'));
     }
 
     public function promotionShow(string $promotion): View
     {
+        $settings = $this->dealerSettings();
         $promotionModel = Promotion::query()
             ->with('vehicle')
             ->whereNull('deleted_at')
@@ -182,11 +193,12 @@ class PublicPageController extends Controller
             ->where('slug', $promotion)
             ->firstOrFail();
 
-        return view('public.promotions.show', compact('promotionModel'));
+        return view('public.promotions.show', compact('settings', 'promotionModel'));
     }
 
     public function galleryIndex(): View
     {
+        $settings = $this->dealerSettings();
         $gallery = Gallery::query()
             ->whereNull('deleted_at')
             ->where('is_published', true)
@@ -194,7 +206,7 @@ class PublicPageController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        return view('public.gallery.index', compact('gallery'));
+        return view('public.gallery.index', compact('settings', 'gallery'));
     }
 
     public function contact(): View
@@ -209,13 +221,142 @@ class PublicPageController extends Controller
                 ->get()
             : collect();
 
-        return view('public.contact', compact('settings', 'sales'));
+        $dealerNumber = $this->normalizeWhatsapp($settings->whatsapp);
+        $dealerWhatsappUrl = $dealerNumber !== ''
+            ? $this->whatsappUrl($dealerNumber, 'Halo, saya ingin menghubungi dealer.')
+            : null;
+
+        return view('public.contact', compact('settings', 'sales', 'dealerWhatsappUrl'));
     }
 
-    public function creditSimulation(): View
+    public function creditSimulation(Request $request): View
     {
         $settings = $this->dealerSettings();
+        $vehicles = Vehicle::query()
+            ->whereNull('deleted_at')
+            ->where('status', 'available')
+            ->orderBy('brand')
+            ->orderBy('name')
+            ->get(['id', 'brand', 'name', 'slug', 'price']);
+        $selectedVehicle = null;
 
-        return view('public.credit-simulation', compact('settings'));
+        if ($request->filled('vehicle')) {
+            $selectedVehicle = $vehicles->firstWhere('slug', $request->query('vehicle'));
+
+            abort_unless($selectedVehicle, 404);
+        }
+
+        return view('public.credit-simulation', compact('settings', 'vehicles', 'selectedVehicle'));
+    }
+
+    public function chatSales(Request $request, ?int $sale = null): View|RedirectResponse
+    {
+        $settings = $this->dealerSettings();
+        $sales = Sale::query()
+            ->whereNull('deleted_at')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $vehicleSlug = $request->query('vehicle');
+        $vehicle = null;
+
+        if ($vehicleSlug !== null) {
+            abort_unless(is_string($vehicleSlug), 404);
+            $vehicle = Vehicle::query()
+                ->whereNull('deleted_at')
+                ->where('status', 'available')
+                ->where('slug', $vehicleSlug)
+                ->firstOrFail();
+        }
+
+        $message = $vehicle
+            ? sprintf('Halo, saya ingin berkonsultasi mengenai %s %s.', $vehicle->brand, $vehicle->name)
+            : 'Halo, saya ingin berkonsultasi mengenai kendaraan.';
+
+        if ($request->boolean('credit')) {
+            $validated = validator($request->query(), [
+                'price' => ['required', 'integer', 'min:1', 'max:999999999999'],
+                'down_payment' => ['required', 'integer', 'min:1'],
+                'tenor' => ['required', 'integer', 'in:12,24,36,48,60'],
+                'annual_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            ])->validate();
+            abort_if($validated['down_payment'] >= $validated['price'], 422);
+
+            $principal = $validated['price'] - $validated['down_payment'];
+            $totalInterest = $principal * (float) $validated['annual_rate'] / 100 * ((int) $validated['tenor'] / 12);
+            $monthlyInstallment = ($principal + $totalInterest) / (int) $validated['tenor'];
+            $message .= sprintf(
+                "\n\nRingkasan simulasi estimasi:\nHarga: Rp %s\nDP: Rp %s\nTenor: %s bulan\nEstimasi cicilan: Rp %s per bulan",
+                number_format((int) $validated['price'], 0, ',', '.'),
+                number_format((int) $validated['down_payment'], 0, ',', '.'),
+                $validated['tenor'],
+                number_format((int) round($monthlyInstallment), 0, ',', '.'),
+            );
+        }
+
+        if ($sale !== null) {
+            $selectedSale = $sales->firstWhere('id', $sale);
+            abort_unless($selectedSale, 404);
+
+            $number = $this->normalizeWhatsapp($selectedSale->whatsapp) ?: $this->normalizeWhatsapp($settings->whatsapp);
+            if ($number !== '') {
+                return redirect()->away($this->whatsappUrl($number, $message));
+            }
+
+            return view('public.sales', [
+                'settings' => $settings,
+                'sales' => collect(),
+                'message' => $message,
+                'unavailableSale' => $selectedSale,
+                'dealerWhatsappUrl' => null,
+            ]);
+        }
+
+        $salesWithWhatsapp = $sales->filter(fn (Sale $item): bool => $this->normalizeWhatsapp($item->whatsapp) !== '');
+        if ($salesWithWhatsapp->count() === 1) {
+            $singleSale = $salesWithWhatsapp->first();
+
+            return redirect()->away($this->whatsappUrl($this->normalizeWhatsapp($singleSale->whatsapp), $message));
+        }
+
+        if ($salesWithWhatsapp->isEmpty()) {
+            $dealerNumber = $this->normalizeWhatsapp($settings->whatsapp);
+            if ($dealerNumber !== '') {
+                return redirect()->away($this->whatsappUrl($dealerNumber, $message));
+            }
+        }
+
+        $sales = $salesWithWhatsapp->map(fn (Sale $item): array => [
+            'sale' => $item,
+            'url' => route('sales.chat', ['sale' => $item->getKey()] + $request->query()),
+        ]);
+
+        $dealerNumber = $this->normalizeWhatsapp($settings->whatsapp);
+
+        return view('public.sales', [
+            'settings' => $settings,
+            'sales' => $sales,
+            'message' => $message,
+            'unavailableSale' => null,
+            'dealerWhatsappUrl' => $dealerNumber !== '' ? $this->whatsappUrl($dealerNumber, $message) : null,
+        ]);
+    }
+
+    private function normalizeWhatsapp(?string $number): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $number) ?? '';
+
+        if (str_starts_with($digits, '0')) {
+            return '62'.substr($digits, 1);
+        }
+
+        return str_starts_with($digits, '8') ? '62'.$digits : $digits;
+    }
+
+    private function whatsappUrl(string $number, string $message): string
+    {
+        return 'https://wa.me/'.$number.'?text='.rawurlencode($message);
     }
 }

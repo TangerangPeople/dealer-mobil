@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\DealerSettingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class DealerSetting extends Model
 {
@@ -47,5 +48,24 @@ class DealerSetting extends Model
             'longitude' => 'decimal:7',
             'social_links' => 'array',
         ];
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->resolvePublicUrl($this->logo_path);
+    }
+
+    public function getHeroImageUrlAttribute(): ?string
+    {
+        return $this->resolvePublicUrl($this->hero_image_path);
+    }
+
+    protected function resolvePublicUrl(?string $path): ?string
+    {
+        if ($path === null || $path === '' || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 }

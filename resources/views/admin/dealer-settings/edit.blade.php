@@ -47,9 +47,9 @@
                 <div>
                     <label for="logo" class="block text-sm font-semibold text-[#262626]">Logo dealer</label>
                     <input id="logo" name="logo" type="file" accept="image/*" @class(['mt-2 block w-full border bg-white px-3 py-2 text-base outline-none focus:border-[#262626] focus:ring-2 focus:ring-[#262626] focus:ring-offset-2', 'border-[#b91c1c]' => $errors->has('logo'), 'border-[#bbbbbb]' => ! $errors->has('logo')])>
-                    @if ($setting->logo_path)
+                    @if ($setting->logo_url)
                         <div class="mt-4 flex items-center gap-4 border border-[#bbbbbb] bg-[#f1f1f1] p-4">
-                            <img src="{{ Storage::disk('public')->url($setting->logo_path) }}" alt="Logo dealer" class="h-16 w-16 border border-[#bbbbbb] object-contain bg-white">
+                            <img src="{{ $setting->logo_url }}" alt="Logo dealer" class="h-16 w-16 border border-[#bbbbbb] object-contain bg-white">
                             <label class="inline-flex items-center gap-2 text-sm font-semibold text-[#262626]">
                                 <input type="checkbox" name="remove_logo" value="1">
                                 Hapus logo
@@ -82,9 +82,9 @@
                 <div>
                     <label for="hero_image" class="block text-sm font-semibold text-[#262626]">Hero image</label>
                     <input id="hero_image" name="hero_image" type="file" accept="image/*" @class(['mt-2 block w-full border bg-white px-3 py-2 text-base outline-none focus:border-[#262626] focus:ring-2 focus:ring-[#262626] focus:ring-offset-2', 'border-[#b91c1c]' => $errors->has('hero_image'), 'border-[#bbbbbb]' => ! $errors->has('hero_image')])>
-                    @if ($setting->hero_image_path)
+                    @if ($setting->hero_image_url)
                         <div class="mt-4 flex items-center gap-4 border border-[#bbbbbb] bg-[#f1f1f1] p-4">
-                            <img src="{{ Storage::disk('public')->url($setting->hero_image_path) }}" alt="Hero dealer" class="h-32 w-56 border border-[#bbbbbb] object-cover bg-white">
+                            <img src="{{ $setting->hero_image_url }}" alt="Hero dealer" class="h-32 w-56 border border-[#bbbbbb] object-cover bg-white">
                             <label class="inline-flex items-center gap-2 text-sm font-semibold text-[#262626]">
                                 <input type="checkbox" name="remove_hero_image" value="1">
                                 Hapus hero image

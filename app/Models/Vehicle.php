@@ -72,4 +72,10 @@ class Vehicle extends Model
     {
         return $this->hasMany(Promotion::class);
     }
+
+    /** @return HasMany<PurchaseApplication, $this> */
+    public function purchaseApplications(): HasMany
+    {
+        return $this->hasMany(PurchaseApplication::class);
+    }
 }

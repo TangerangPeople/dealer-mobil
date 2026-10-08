@@ -28,6 +28,16 @@ class AdminVehicleTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_non_admin_cannot_open_vehicle_edit_page(): void
+    {
+        $category = Category::factory()->create();
+        $vehicle = Vehicle::factory()->for($category)->create();
+
+        $this->actingAs(User::factory()->create(['role' => 'user']))
+            ->get(route('admin.vehicles.edit', $vehicle))
+            ->assertForbidden();
+    }
+
     public function test_admin_can_open_vehicle_pages(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -39,6 +49,103 @@ class AdminVehicleTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.vehicles.create'))
             ->assertOk();
+    }
+
+    public function test_vehicle_edit_link_uses_same_origin_and_opens_the_matching_vehicle(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $category = Category::factory()->create(['name' => 'SUV']);
+        $vehicle = Vehicle::factory()->for($category)->create([
+            'brand' => 'Toyota',
+            'name' => 'Innova Reborn',
+            'is_featured' => true,
+        ]);
+        $image = VehicleImage::factory()->for($vehicle)->create([
+            'image_path' => 'vehicles/innova-reborn.jpg',
+            'alt_text' => 'Foto Innova Reborn',
+            'is_primary' => true,
+        ]);
+        Storage::disk('public')->put($image->image_path, 'image bytes');
+        $editUrl = '/admin/vehicles/'.$vehicle->id.'/edit';
+        $updateAction = '/admin/vehicles/'.$vehicle->id;
+
+        $indexResponse = $this->actingAs($admin)
+            ->get(route('admin.vehicles.index'));
+
+        $indexResponse->assertOk()
+            ->assertSee('href="'.$editUrl.'"', false);
+
+        $this->get($editUrl)
+            ->assertOk()
+            ->assertSee('Edit kendaraan')
+            ->assertSee('value="Innova Reborn"', false)
+            ->assertSee('value="Toyota"', false)
+            ->assertSee('value="'.$category->id.'" selected', false)
+            ->assertSee('src="/storage/'.$image->image_path.'"', false)
+            ->assertSee('alt="Foto Innova Reborn"', false)
+            ->assertSee('action="'.$updateAction.'"', false)
+            ->assertSee('name="_method" value="PUT"', false)
+            ->assertSee('name="_token"', false)
+            ->assertSee('<button type="submit"', false)
+            ->assertSee('Perbarui kendaraan');
+
+        $this->put(route('admin.vehicles.update', $vehicle), [
+            'category_id' => $category->id,
+            'brand' => 'Toyota',
+            'name' => 'Innova Reborn Updated',
+            'type' => 'SUV',
+            'slug' => 'innova-reborn-updated',
+            'year' => 2026,
+            'price' => 400000000,
+            'status' => 'available',
+        ])
+            ->assertRedirect(route('admin.vehicles.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('vehicles', [
+            'id' => $vehicle->id,
+            'name' => 'Innova Reborn Updated',
+            'category_id' => $category->id,
+            'is_featured' => false,
+        ]);
+        $this->assertDatabaseHas('vehicle_images', [
+            'id' => $image->id,
+            'vehicle_id' => $vehicle->id,
+            'image_path' => $image->image_path,
+        ]);
+        Storage::disk('public')->assertExists($image->image_path);
+    }
+
+    public function test_invalid_vehicle_update_returns_validation_errors_and_keeps_existing_data(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $category = Category::factory()->create();
+        $vehicle = Vehicle::factory()->for($category)->create([
+            'name' => 'Fortuner',
+            'status' => 'inactive',
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.vehicles.edit', $vehicle))
+            ->put(route('admin.vehicles.update', $vehicle), [
+                'category_id' => $category->id,
+                'brand' => 'Toyota',
+                'name' => '',
+                'type' => 'SUV',
+                'slug' => 'fortuner',
+                'year' => 2025,
+                'price' => 500000000,
+                'status' => 'inactive',
+            ])
+            ->assertRedirect(route('admin.vehicles.edit', $vehicle))
+            ->assertSessionHasErrors('name');
+
+        $this->assertDatabaseHas('vehicles', [
+            'id' => $vehicle->id,
+            'name' => 'Fortuner',
+        ]);
     }
 
     public function test_admin_can_create_vehicle(): void
