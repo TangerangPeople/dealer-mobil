@@ -1,32 +1,62 @@
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+@source "../**/*.blade.php";
+@source "../**/*.js";
+
+/* =========================================================
+   YAOP DEALER DEVELOPMENT
+   PREMIUM AUTOMOTIVE DESIGN SYSTEM
+   Tailwind CSS v4
+   ========================================================= */
+
+/* =========================================================
+   01. DESIGN TOKENS
+   ========================================================= */
 
 @theme {
-    --font-sans: 'Inter', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+
     --color-carbon: #262626;
-    --color-pure-white: #ffffff;
-    --color-concrete: #bbbbbb;
     --color-fog: #f1f1f1;
+    --color-concrete: #bbbbbb;
+
+    --breakpoint-xs: 480px;
 }
 
 :root {
-    --color-carbon: #262626;
-    --color-pure-white: #ffffff;
-    --color-concrete: #bbbbbb;
-    --color-fog: #f1f1f1;
+    color-scheme: light;
 
-    --surface-footer: #262626;
-    --surface-canvas: #ffffff;
-    --surface-subtle-band: #f1f1f1;
+    --yaop-carbon: #262626;
+    --yaop-carbon-deep: #171717;
+    --yaop-white: #ffffff;
+    --yaop-fog: #f1f1f1;
+    --yaop-concrete: #bbbbbb;
+    --yaop-muted: #696969;
+    --yaop-subtle: #858585;
 
-    --content-max-width: 1200px;
-    --page-gutter: 1rem;
+    --yaop-border: rgba(38, 38, 38, 0.14);
+    --yaop-border-strong: rgba(38, 38, 38, 0.30);
+    --yaop-border-inverse: rgba(255, 255, 255, 0.22);
+
+    --yaop-content-width: 1200px;
+    --yaop-page-gutter: clamp(20px, 4.5vw, 64px);
+
+    --yaop-space-section: clamp(64px, 8vw, 112px);
+    --yaop-space-section-small: clamp(48px, 6vw, 80px);
+
+    --yaop-duration-fast: 180ms;
+    --yaop-duration-normal: 280ms;
+    --yaop-duration-image: 650ms;
+
+    --yaop-ease: cubic-bezier(0.2, 0.65, 0.3, 1);
 }
+
+/* =========================================================
+   02. GLOBAL FOUNDATION
+   ========================================================= */
 
 *,
 *::before,
@@ -35,245 +65,1045 @@
 }
 
 html {
+    min-width: 320px;
     scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+
     -webkit-text-size-adjust: 100%;
-    scroll-padding-top: 6rem;
+    text-size-adjust: 100%;
 }
 
 body {
     min-width: 320px;
+    min-height: 100vh;
     margin: 0;
+
+    background: var(--yaop-white);
+    color: var(--yaop-carbon);
+
     font-family: var(--font-sans);
-    background: var(--surface-canvas);
-    color: var(--color-carbon);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.7;
+    letter-spacing: -0.012em;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    overflow-wrap: anywhere;
 }
 
-img {
-    display: block;
-    max-width: 100%;
-}
-
+img,
+picture,
 video,
-iframe,
 canvas,
 svg {
     max-width: 100%;
 }
 
+img,
+picture,
+video {
+    display: block;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button,
 input,
 select,
 textarea,
-button {
-    max-width: 100%;
+a {
+    -webkit-tap-highlight-color: transparent;
 }
 
+button {
+    color: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    cursor: not-allowed;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+::selection {
+    background: var(--yaop-carbon);
+    color: var(--yaop-white);
+}
+
+#main-content,
 main,
 section,
 article,
 aside,
-.section-shell,
-.editorial-card {
+header,
+footer,
+nav {
     min-width: 0;
 }
 
-.section-shell {
-    width: 100%;
-    max-width: var(--content-max-width);
-    margin-inline: auto;
-    padding-inline: var(--page-gutter);
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 0;
+    text-wrap: balance;
 }
 
-.section-label {
-    font-size: 0.72rem;
-    line-height: 1.4;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #6b7280;
+p {
+    text-wrap: pretty;
 }
 
-.nav-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 36px;
-    white-space: nowrap;
-    transition: color 150ms ease;
+:target {
+    scroll-margin-top: 100px;
 }
 
-.nav-link:hover {
-    color: #101010;
+/* =========================================================
+   03. TYPOGRAPHY SYSTEM
+   ========================================================= */
+
+@layer components {
+    .section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+
+        color: var(--yaop-muted);
+
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .section-label::before {
+        width: 20px;
+        height: 1px;
+        flex: 0 0 20px;
+
+        background: currentColor;
+        content: "";
+    }
+
+    .editorial-heading {
+        max-width: 14ch;
+        margin: 0;
+
+        color: var(--yaop-carbon);
+
+        font-size: clamp(2.5rem, 5.5vw, 5.3rem);
+        font-weight: 300;
+        line-height: 0.98;
+        letter-spacing: -0.065em;
+    }
+
+    .editorial-heading-small {
+        max-width: 16ch;
+        margin: 0;
+
+        color: var(--yaop-carbon);
+
+        font-size: clamp(1.9rem, 3.6vw, 3.6rem);
+        font-weight: 300;
+        line-height: 1.08;
+        letter-spacing: -0.05em;
+    }
+
+    .editorial-copy {
+        max-width: 62ch;
+
+        color: #555555;
+        font-size: 15px;
+        line-height: 1.9;
+        letter-spacing: -0.005em;
+    }
+
+    .eyebrow {
+        color: var(--yaop-muted);
+
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .content-divider {
+        width: 100%;
+        height: 1px;
+        border: 0;
+        background: var(--yaop-border);
+    }
 }
 
-.mobile-nav-link {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-width: 0;
-    padding: 0.8rem 0.85rem;
-    overflow-wrap: anywhere;
-    transition: background-color 150ms ease;
+/* =========================================================
+   04. LAYOUT & SPACING
+   ========================================================= */
+
+@layer components {
+    .section-shell {
+        width: 100%;
+        max-width: calc(
+            var(--yaop-content-width) +
+            (var(--yaop-page-gutter) * 2)
+        );
+
+        margin-inline: auto;
+        padding-inline: var(--yaop-page-gutter);
+    }
+
+    .section-padding {
+        padding-block: var(--yaop-space-section);
+    }
+
+    .section-padding-small {
+        padding-block: var(--yaop-space-section-small);
+    }
+
+    .editorial-section {
+        padding-block: var(--yaop-space-section);
+        border-bottom: 1px solid var(--yaop-border);
+    }
+
+    .editorial-section-muted {
+        padding-block: var(--yaop-space-section);
+        background: var(--yaop-fog);
+    }
+
+    .editorial-rule {
+        width: 100%;
+        height: 1px;
+        background: var(--yaop-border);
+    }
+
+    .editorial-rule-light {
+        width: 100%;
+        height: 1px;
+        background: var(--yaop-border-inverse);
+    }
+
+    .content-narrow {
+        width: 100%;
+        max-width: 760px;
+    }
+
+    .content-reading {
+        width: 100%;
+        max-width: 680px;
+    }
+
+    .page-intro {
+        max-width: 760px;
+        margin-bottom: clamp(32px, 5vw, 64px);
+    }
+
+    .page-intro > :first-child {
+        margin-top: 0;
+    }
+
+    .page-intro > :last-child {
+        margin-bottom: 0;
+    }
 }
 
-.mobile-nav-link:hover {
-    background: var(--surface-subtle-band);
+/* =========================================================
+   05. BUTTON SYSTEM
+   Kontras jelas, tanpa efek opacity yang membuat tombol pudar
+   ========================================================= */
+
+@layer components {
+    .button-primary,
+    .button-secondary {
+        display: inline-flex;
+        min-height: 48px;
+        width: fit-content;
+        max-width: 100%;
+
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        padding: 13px 23px;
+
+        border: 1px solid var(--yaop-carbon);
+        border-radius: 0;
+
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.075em;
+
+        cursor: pointer;
+
+        opacity: 1;
+
+        transition:
+            color var(--yaop-duration-normal) var(--yaop-ease),
+            background-color var(--yaop-duration-normal) var(--yaop-ease),
+            border-color var(--yaop-duration-normal) var(--yaop-ease),
+            transform var(--yaop-duration-normal) var(--yaop-ease);
+    }
+
+    .button-primary {
+        border-color: var(--yaop-carbon);
+        background-color: var(--yaop-carbon);
+        color: var(--yaop-white);
+    }
+
+    .button-primary:hover {
+        border-color: var(--yaop-carbon);
+        background-color: var(--yaop-fog);
+        color: var(--yaop-carbon);
+        opacity: 1;
+        transform: translateY(-1px);
+    }
+
+    .button-secondary {
+        border-color: var(--yaop-carbon);
+        background-color: var(--yaop-white);
+        color: var(--yaop-carbon);
+    }
+
+    .button-secondary:hover {
+        border-color: var(--yaop-carbon);
+        background-color: var(--yaop-carbon);
+        color: var(--yaop-white);
+        opacity: 1;
+        transform: translateY(-1px);
+    }
+
+    .bg-carbon .button-secondary {
+        border-color: rgba(255, 255, 255, 0.8);
+        background-color: transparent;
+        color: var(--yaop-white);
+    }
+
+    .bg-carbon .button-secondary:hover {
+        border-color: var(--yaop-white);
+        background-color: var(--yaop-white);
+        color: var(--yaop-carbon);
+    }
+
+    .button-primary:active,
+    .button-secondary:active {
+        transform: translateY(0);
+    }
+
+    .button-primary:focus-visible,
+    .button-secondary:focus-visible {
+        outline: 2px solid var(--yaop-carbon);
+        outline-offset: 4px;
+    }
+
+    .button-primary:disabled,
+    .button-secondary:disabled {
+        background-color: #e8e8e8;
+        border-color: #c9c9c9;
+        color: #666666;
+        cursor: not-allowed;
+        opacity: 1;
+        transform: none;
+    }
+
+    .button-light {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+
+        padding: 13px 23px;
+        border: 1px solid var(--yaop-white);
+
+        background-color: var(--yaop-white);
+        color: var(--yaop-carbon);
+
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.075em;
+
+        opacity: 1;
+
+        transition:
+            color var(--yaop-duration-normal) var(--yaop-ease),
+            background-color var(--yaop-duration-normal) var(--yaop-ease),
+            border-color var(--yaop-duration-normal) var(--yaop-ease);
+    }
+
+    .button-light:hover {
+        border-color: var(--yaop-white);
+        background-color: transparent;
+        color: var(--yaop-white);
+        opacity: 1;
+    }
+
+    .responsive-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+    }
 }
 
-.button-primary,
-.button-secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    max-width: 100%;
-    min-height: 46px;
-    border: 1px solid var(--color-carbon);
-    padding: 0.7rem 1.2rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-align: center;
-    text-transform: uppercase;
-    line-height: 1.4;
-    text-decoration: none;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    transition:
-        background-color 150ms ease,
-        color 150ms ease,
-        border-color 150ms ease;
+/* =========================================================
+   06. LINKS & NAVIGATION
+   ========================================================= */
+
+@layer components {
+    .text-link {
+        display: inline-flex;
+        width: fit-content;
+        max-width: 100%;
+
+        align-items: center;
+        gap: 8px;
+
+        color: var(--yaop-carbon);
+
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.65;
+
+        text-decoration-line: underline;
+        text-decoration-color: var(--yaop-concrete);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 5px;
+
+        transition:
+            color var(--yaop-duration-fast) ease,
+            text-decoration-color var(--yaop-duration-fast) ease;
+    }
+
+    .text-link:hover {
+        color: #656565;
+        text-decoration-color: currentColor;
+    }
+
+    .footer-link {
+        color: #d3d3d3;
+
+        transition:
+            color var(--yaop-duration-fast) ease,
+            text-decoration-color var(--yaop-duration-fast) ease;
+    }
+
+    .footer-link:hover {
+        color: var(--yaop-white);
+    }
+
+    .text-link:focus-visible,
+    .footer-link:focus-visible,
+    .mobile-nav-link:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 4px;
+    }
+
+    .mobile-nav-link {
+        display: flex;
+        width: 100%;
+        min-height: 46px;
+
+        align-items: center;
+        padding: 12px 14px;
+
+        color: var(--yaop-carbon);
+        font-size: 13px;
+        line-height: 1.5;
+
+        transition:
+            color var(--yaop-duration-fast) ease,
+            background-color var(--yaop-duration-fast) ease;
+    }
+
+    .mobile-nav-link:hover {
+        background-color: var(--yaop-fog);
+    }
+
+    header {
+        isolation: isolate;
+    }
+
+    header summary {
+        list-style: none;
+    }
+
+    header summary::-webkit-details-marker {
+        display: none;
+    }
+
+    header summary::marker {
+        content: "";
+    }
+
+    header summary > svg {
+        transition: transform var(--yaop-duration-normal) var(--yaop-ease);
+    }
+
+    header details[open] > summary > svg {
+        transform: rotate(90deg);
+    }
 }
 
-.button-primary {
-    background: var(--color-carbon);
-    color: var(--color-pure-white);
+/* =========================================================
+   07. EDITORIAL IMAGES
+   ========================================================= */
+
+@layer components {
+    .image-frame {
+        position: relative;
+        overflow: hidden;
+        background: var(--yaop-fog);
+    }
+
+    .image-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+
+        transition: transform var(--yaop-duration-image) var(--yaop-ease);
+    }
+
+    .image-frame:hover img {
+        transform: scale(1.025);
+    }
+
+    .editorial-image {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        background: var(--yaop-fog);
+    }
+
+    .image-caption {
+        padding-block: 12px;
+        border-bottom: 1px solid var(--yaop-border);
+
+        color: var(--yaop-muted);
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .image-placeholder {
+        display: flex;
+        min-height: 180px;
+        width: 100%;
+
+        align-items: center;
+        justify-content: center;
+
+        padding: 24px;
+        background: var(--yaop-fog);
+        color: var(--yaop-muted);
+
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .gallery-caption {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        padding: 18px;
+
+        background-color: var(--yaop-carbon);
+        color: var(--yaop-white);
+
+        opacity: 0;
+        transform: translateY(8px);
+
+        transition:
+            opacity var(--yaop-duration-normal) ease,
+            transform var(--yaop-duration-normal) var(--yaop-ease);
+    }
+
+    .group:hover .gallery-caption,
+    .group:focus-within .gallery-caption {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.button-primary:hover {
-    background: #101010;
-    border-color: #101010;
+/* =========================================================
+   08. EDITORIAL CARDS & VEHICLE LISTINGS
+   ========================================================= */
+
+@layer components {
+    .editorial-card {
+        min-width: 0;
+        overflow: hidden;
+
+        border: 1px solid var(--yaop-border);
+        background-color: var(--yaop-white);
+
+        transition: border-color var(--yaop-duration-normal) ease;
+    }
+
+    .editorial-card:hover {
+        border-color: var(--yaop-border-strong);
+    }
+
+    .editorial-card img {
+        transition: transform var(--yaop-duration-image) var(--yaop-ease);
+    }
+
+    .editorial-card:hover img {
+        transform: scale(1.02);
+    }
+
+    .vehicle-spec-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px 16px;
+    }
+
+    .vehicle-spec {
+        min-width: 0;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--yaop-border);
+    }
+
+    .vehicle-spec-label {
+        color: var(--yaop-muted);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .vehicle-spec-value {
+        margin-top: 6px;
+        color: var(--yaop-carbon);
+        font-size: 14px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .vehicle-price {
+        color: var(--yaop-carbon);
+        font-size: clamp(1.1rem, 2vw, 1.55rem);
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: -0.035em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .listing-divider {
+        border-bottom: 1px solid var(--yaop-border);
+    }
 }
 
-.button-secondary {
-    background: var(--color-pure-white);
-    color: var(--color-carbon);
-}
+/* =========================================================
+   09. FORMS
+   ========================================================= */
 
-.button-secondary:hover {
-    background: var(--color-carbon);
-    color: var(--color-pure-white);
-}
+@layer components {
+    .form-field {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 8px;
+    }
 
-.text-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    max-width: 100%;
-    color: var(--color-carbon);
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.25rem;
-    overflow-wrap: anywhere;
-    transition: opacity 150ms ease;
-}
+    .form-label {
+        color: var(--yaop-carbon);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.6;
+    }
 
-.text-link::after {
-    content: '→';
-    text-decoration: none;
-}
+    .form-help {
+        color: var(--yaop-muted);
+        font-size: 12px;
+        line-height: 1.7;
+    }
 
-.text-link:hover {
-    opacity: 0.65;
-}
+    .form-control {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
 
-.editorial-card {
-    overflow: hidden;
-    border: 1px solid rgba(38, 38, 38, 0.1);
-    background: var(--color-pure-white);
-}
+        padding: 12px 14px;
 
-.footer-link {
-    overflow-wrap: anywhere;
-    text-underline-offset: 0.25rem;
-    transition: color 150ms ease;
-}
+        border: 1px solid var(--yaop-concrete);
+        border-radius: 0;
 
-.footer-link:hover {
-    color: var(--color-pure-white);
-}
+        background-color: var(--yaop-white);
+        color: var(--yaop-carbon);
 
-/*
-|--------------------------------------------------------------------------
-| Responsive helpers
-|--------------------------------------------------------------------------
-| Gunakan class ini pada Blade yang sesuai.
-*/
+        font-size: 14px;
+        line-height: 1.5;
 
-.responsive-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 0;
-}
+        transition:
+            border-color var(--yaop-duration-fast) ease,
+            background-color var(--yaop-duration-fast) ease;
+    }
 
-.responsive-actions > * {
-    max-width: 100%;
-}
+    .form-control::placeholder {
+        color: #858585;
+        opacity: 1;
+    }
 
-.responsive-form-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
-    min-width: 0;
-}
+    .form-control:hover {
+        border-color: var(--yaop-muted);
+    }
 
-.responsive-form-grid > * {
-    min-width: 0;
-}
+    .form-control:focus {
+        border-color: var(--yaop-carbon);
+        outline: 2px solid transparent;
+    }
 
-.responsive-table {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-}
+    .form-control:focus-visible {
+        outline: 2px solid var(--yaop-carbon);
+        outline-offset: 2px;
+    }
 
-.responsive-table > table {
-    width: 100%;
-    min-width: 40rem;
-    border-collapse: collapse;
-}
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
 
-@media (min-width: 640px) {
-    :root {
-        --page-gutter: 1.5rem;
+    .form-error {
+        color: #a12e2e;
+        font-size: 12px;
+        line-height: 1.6;
     }
 
     .responsive-form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+}
+
+/* =========================================================
+   10. TABLES & ADMIN
+   ========================================================= */
+
+@layer components {
+    .responsive-table {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .responsive-table table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .responsive-table th {
+        padding: 14px 16px;
+
+        border-bottom: 1px solid var(--yaop-border-strong);
+
+        color: var(--yaop-muted);
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .responsive-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--yaop-border);
+
+        color: var(--yaop-carbon);
+        font-size: 13px;
+        line-height: 1.7;
+        vertical-align: middle;
+    }
+
+    .responsive-table tbody tr {
+        transition: background-color var(--yaop-duration-fast) ease;
+    }
+
+    .responsive-table tbody tr:hover {
+        background-color: #fafafa;
+    }
+
+    .admin-page-title {
+        color: var(--yaop-carbon);
+        font-size: clamp(1.7rem, 3vw, 2.7rem);
+        font-weight: 300;
+        line-height: 1.1;
+        letter-spacing: -0.05em;
+    }
+
+    .admin-panel {
+        min-width: 0;
+        border: 1px solid var(--yaop-border);
+        background-color: var(--yaop-white);
+    }
+
+    .admin-panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--yaop-border);
+    }
+
+    .admin-panel-body {
+        padding: 24px;
+    }
+}
+
+/* =========================================================
+   11. STATUS LABELS
+   ========================================================= */
+
+@layer components {
+    .status-badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        justify-content: center;
+
+        padding: 5px 9px;
+        border: 1px solid var(--yaop-border);
+
+        background-color: var(--yaop-fog);
+        color: var(--yaop-carbon);
+
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.04em;
+    }
+
+    .status-badge-success {
+        border-color: #a9c7b4;
+        background-color: #edf5f0;
+        color: #28583c;
+    }
+
+    .status-badge-warning {
+        border-color: #dfc89c;
+        background-color: #fbf5e8;
+        color: #75551f;
+    }
+
+    .status-badge-danger {
+        border-color: #ddb4b4;
+        background-color: #fbefef;
+        color: #8b3030;
+    }
+}
+
+/* =========================================================
+   12. PAGINATION
+   ========================================================= */
+
+@layer components {
+    .pagination-shell {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+
+        padding-block: 24px;
+    }
+
+    .pagination-shell a,
+    .pagination-shell span {
+        display: inline-flex;
+        min-width: 38px;
+        min-height: 38px;
+
+        align-items: center;
+        justify-content: center;
+
+        padding: 8px 12px;
+        border: 1px solid var(--yaop-border);
+
+        font-size: 12px;
+        line-height: 1.4;
+
+        transition:
+            color var(--yaop-duration-fast) ease,
+            background-color var(--yaop-duration-fast) ease,
+            border-color var(--yaop-duration-fast) ease;
+    }
+
+    .pagination-shell a:hover {
+        border-color: var(--yaop-carbon);
+        background-color: var(--yaop-fog);
+    }
+}
+
+/* =========================================================
+   13. ACCESSIBILITY & KEYBOARD FOCUS
+   ========================================================= */
+
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex]
+):focus-visible {
+    outline: 2px solid var(--yaop-carbon);
+    outline-offset: 3px;
+}
+
+a,
+button,
+summary {
+    touch-action: manipulation;
+}
+
+/* =========================================================
+   14. RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (min-width: 640px) {
+    .responsive-form-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
     }
 }
 
 @media (min-width: 1024px) {
-    :root {
-        --page-gutter: 2rem;
+    .responsive-form-grid {
+        gap: 28px;
     }
 }
 
-@media (max-width: 639px) {
-    .section-label {
-        letter-spacing: 0.15em;
+/* =========================================================
+   15. RESPONSIVE — MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+    :root {
+        --yaop-page-gutter: 20px;
+    }
+
+    html {
+        scroll-padding-top: 76px;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    .editorial-copy {
+        font-size: 14px;
+        line-height: 1.85;
     }
 
     .button-primary,
-    .button-secondary {
-        min-height: 44px;
-        padding: 0.75rem 1rem;
-        font-size: 0.72rem;
+    .button-secondary,
+    .button-light {
+        min-height: 46px;
+        padding: 12px 16px;
+        font-size: 10px;
+    }
+
+    .responsive-actions {
+        align-items: stretch;
+    }
+
+    .responsive-actions > a,
+    .responsive-actions > button {
+        flex: 1 1 auto;
+    }
+
+    .admin-panel-header {
+        padding: 16px;
+    }
+
+    .admin-panel-body {
+        padding: 16px;
+    }
+
+    .responsive-table th,
+    .responsive-table td {
+        padding: 12px;
+    }
+
+    .gallery-caption {
+        position: static;
+        opacity: 1;
+        transform: none;
     }
 }
+
+/* =========================================================
+   16. RESPONSIVE — SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 479px) {
+    :root {
+        --yaop-page-gutter: 16px;
+    }
+
+    .section-label {
+        gap: 7px;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+    }
+
+    .section-label::before {
+        width: 14px;
+        flex-basis: 14px;
+    }
+
+    .vehicle-spec-grid {
+        gap: 16px 12px;
+    }
+
+    .responsive-actions {
+        flex-direction: column;
+    }
+
+    .responsive-actions > a,
+    .responsive-actions > button {
+        width: 100%;
+    }
+
+    .pagination-shell {
+        justify-content: center;
+    }
+}
+
+/* =========================================================
+   17. REDUCED MOTION
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
     html {
@@ -284,8 +1114,146 @@ aside,
     *::before,
     *::after {
         scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .image-frame:hover img,
+    .editorial-card:hover img {
+        transform: none;
+    }
+
+    .button-primary:hover,
+    .button-secondary:hover,
+    .button-primary:active,
+    .button-secondary:active {
+        transform: none;
+    }
+}
+
+/* =========================================================
+   18. FIX OPACITY TOMBOL DAN LINK AKSI
+   ========================================================= */
+
+/*
+ * Tombol dan link aktif tidak boleh memudar akibat kelas
+ * opacity-* yang digunakan pada elemen itu sendiri.
+ *
+ * Properti ini tidak mengubah opacity elemen yang disabled.
+ */
+
+main a,
+main button:not(:disabled),
+main input[type="submit"]:not(:disabled),
+main input[type="button"]:not(:disabled) {
+    opacity: 1 !important;
+    filter: none;
+}
+
+/*
+ * Tombol utama yang menggunakan utility Tailwind maupun
+ * kelas tombol YAOP mempertahankan latar dan teks solid.
+ */
+
+main a.button-primary,
+main button.button-primary,
+main input.button-primary[type="submit"],
+main input.button-primary[type="button"],
+main a[class*="bg-[#262626]"],
+main button[class*="bg-[#262626]"],
+main a[class*="bg-carbon"],
+main button[class*="bg-carbon"] {
+    background-color: #262626 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/*
+ * Hover tombol utama: sedikit lebih terang, teks tetap putih.
+ */
+
+main a.button-primary:hover,
+main button.button-primary:not(:disabled):hover,
+main input.button-primary[type="submit"]:not(:disabled):hover,
+main input.button-primary[type="button"]:not(:disabled):hover,
+main a[class*="bg-[#262626]"]:hover,
+main button[class*="bg-[#262626]"]:not(:disabled):hover,
+main a[class*="bg-carbon"]:hover,
+main button[class*="bg-carbon"]:not(:disabled):hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/*
+ * Tombol sekunder: latar putih, teks Carbon, dan garis tegas.
+ */
+
+main a.button-secondary,
+main button.button-secondary,
+main a[class*="border-[#262626]"]:not([class*="bg-[#262626]"]),
+main button[class*="border-[#262626]"]:not([class*="bg-[#262626]"]) {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/*
+ * Status disabled tetap terlihat berbeda tanpa membuat
+ * teks terlalu samar.
+ */
+
+main button:disabled,
+main input[type="submit"]:disabled,
+main input[type="button"]:disabled {
+    opacity: 1 !important;
+    border-color: #c9c9c9;
+    background-color: #e8e8e8;
+    color: #666666;
+    cursor: not-allowed;
+    filter: none;
+}
+
+/*
+ * Link dan tombol dengan fokus keyboard.
+ */
+
+main a:focus-visible,
+main button:focus-visible,
+main input[type="submit"]:focus-visible,
+main input[type="button"]:focus-visible {
+    outline: 2px solid #262626;
+    outline-offset: 4px;
+}
+
+/*
+ * Tombol halaman akun jika menggunakan wrapper account-actions.
+ */
+
+.account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.account-actions > a,
+.account-actions > button {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+@media (max-width: 639px) {
+    .account-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .account-actions > a,
+    .account-actions > button {
+        width: 100%;
+        max-width: 100%;
     }
 }

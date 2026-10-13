@@ -42,6 +42,33 @@
                 >
                     {{ config('app.name') }}
                 </a>
+{{-- role-menu:owner-admin --}}
+@if (in_array(auth()->user()?->role, ['admin', 'owner'], true))
+<a href="{{ route('admin.sales-report.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Laporan Penjualan
+</a>
+<a href="{{ route('admin.spare-parts.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Inventaris Sparepart
+</a>
+@endif
+
+{{-- role-menu:admin --}}
+@if (auth()->user()?->role === 'admin')
+<a href="{{ route('admin.service-bookings.assignments') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Penugasan Mekanik
+</a>
+@endif
+
+{{-- role-menu:mechanic --}}
+@if (auth()->user()?->role === 'mechanic')
+<a href="{{ route('admin.mechanic.bookings.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Booking Servis Saya
+</a>
+@endif
 
                 <p class="mt-3 text-xs uppercase tracking-[0.14em] text-[#bbbbbb]">
                     Administrator
@@ -49,7 +76,8 @@
 
                 <nav class="mt-8 space-y-1" aria-label="Navigasi administrator">
                     @foreach ($adminNavigation as $item)
-                        <a
+                        @if (auth()->user()?->role === 'admin' || ! in_array($item['route'] ?? null, ['admin.categories.index', 'admin.vehicles.index', 'admin.promotions.index', 'admin.sales.index', 'admin.galleries.index', 'admin.dealer-settings.index', 'admin.service-packages.index', 'admin.service-bookings.index', 'admin.purchase-applications.index'], true))
+<a
                             href="{{ route($item['route']) }}"
                             @class([
                                 'block border-l-2 px-3 py-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]',
@@ -62,6 +90,7 @@
                         >
                             {{ $item['label'] }}
                         </a>
+@endif
                     @endforeach
                 </nav>
             </aside>
@@ -81,6 +110,33 @@
                             >
                                 {{ config('app.name') }}
                             </a>
+{{-- role-menu:owner-admin --}}
+@if (in_array(auth()->user()?->role, ['admin', 'owner'], true))
+<a href="{{ route('admin.sales-report.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Laporan Penjualan
+</a>
+<a href="{{ route('admin.spare-parts.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Inventaris Sparepart
+</a>
+@endif
+
+{{-- role-menu:admin --}}
+@if (auth()->user()?->role === 'admin')
+<a href="{{ route('admin.service-bookings.assignments') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Penugasan Mekanik
+</a>
+@endif
+
+{{-- role-menu:mechanic --}}
+@if (auth()->user()?->role === 'mechanic')
+<a href="{{ route('admin.mechanic.bookings.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Booking Servis Saya
+</a>
+@endif
 
                             <details class="relative shrink-0">
                                 <summary
@@ -95,7 +151,8 @@
                                     aria-label="Navigasi administrator mobile"
                                 >
                                     @foreach ($adminNavigation as $item)
-                                        <a
+                                        @if (auth()->user()?->role === 'admin' || ! in_array($item['route'] ?? null, ['admin.categories.index', 'admin.vehicles.index', 'admin.promotions.index', 'admin.sales.index', 'admin.galleries.index', 'admin.dealer-settings.index', 'admin.service-packages.index', 'admin.service-bookings.index', 'admin.purchase-applications.index'], true))
+<a
                                             href="{{ route($item['route']) }}"
                                             @class([
                                                 'block border-l-2 px-3 py-3 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#262626]',
@@ -108,6 +165,7 @@
                                         >
                                             {{ $item['label'] }}
                                         </a>
+@endif
                                     @endforeach
                                 </nav>
                             </details>

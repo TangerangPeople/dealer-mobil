@@ -6,6 +6,7 @@ use Database\Factories\ServiceBookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ServiceBooking extends Model
@@ -34,26 +35,66 @@ class ServiceBooking extends Model
         return [
             'vehicle_id' => 'integer',
             'service_package_id' => 'integer',
+            'mechanic_id' => 'integer',
             'preferred_date' => 'date',
         ];
     }
 
-    /** @return BelongsTo<Vehicle, $this> */
+    /**
+     * Kendaraan yang terkait dengan booking.
+     *
+     * @return BelongsTo<Vehicle, $this>
+     */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
 
-    /** @return BelongsTo<ServicePackage, $this> */
+    /**
+     * Paket servis yang dipilih pelanggan.
+     *
+     * @return BelongsTo<ServicePackage, $this>
+     */
     public function servicePackage(): BelongsTo
     {
         return $this->belongsTo(ServicePackage::class);
     }
 
+    /**
+     * Mekanik yang ditugaskan mengerjakan booking.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function mechanic(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mechanic_id');
+    }
+
+    /**
+     * Daftar pemakaian sparepart untuk booking ini.
+     *
+     * @return HasMany<ServiceBookingSparePart, $this>
+     */
+    public function sparePartUsages(): HasMany
+    {
+        return $this->hasMany(
+            ServiceBookingSparePart::class,
+            'service_booking_id'
+        );
+    }
+
+    /**
+     * Membuat tautan WhatsApp untuk konfirmasi booking.
+     */
     public function whatsappLink(): string
     {
         $dealer = DealerSetting::query()->first();
-        $number = preg_replace('/\D+/', '', (string) ($dealer?->whatsapp ?? $dealer?->phone ?? ''));
+
+        $number = preg_replace(
+            '/\D+/',
+            '',
+            (string) ($dealer?->whatsapp ?? $dealer?->phone ?? '')
+        );
 
         if ($number === '') {
             return '#';

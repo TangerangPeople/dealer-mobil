@@ -12,20 +12,64 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
+        $user = Auth::guard('web')->user();
+
+        if ($user !== null) {
+            $destination = match ($user->role) {
+                'admin' => 'admin.dashboard',
+                'owner' => 'owner.dashboard',
+                'sales' => 'sales.dashboard',
+                'mechanic' => 'mechanic.dashboard',
+                default => null,
+            };
+
+            if ($destination !== null) {
+                return redirect()->route($destination);
+            }
+
+            Auth::guard('web')->logout();
+        }
+
         return view('admin.auth.login');
     }
 
     public function store(AdminLoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validated();
+        if (! Auth::guard('web')->attempt($request->validated())) {
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'),
+            ]);
+        }
 
-        if (! Auth::guard('web')->attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-            'role' => 'admin',
-        ])) {
+        $user = Auth::guard('web')->user();
+
+        if ($user === null || ! $user->isStaff()) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'),
+            ]);
+        }
+
+        $destination = match ($user->role) {
+            'admin' => 'admin.dashboard',
+            'owner' => 'owner.dashboard',
+            'sales' => 'sales.dashboard',
+            'mechanic' => 'mechanic.dashboard',
+            default => null,
+        };
+
+        if ($destination === null) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -33,7 +77,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.dashboard'));
+        return redirect()->route($destination);
     }
 
     public function destroy(Request $request): RedirectResponse

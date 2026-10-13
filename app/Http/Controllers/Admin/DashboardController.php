@@ -3,54 +3,79 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Gallery;
 use App\Models\Promotion;
+use App\Models\PurchaseApplication;
 use App\Models\Sale;
 use App\Models\ServiceBooking;
 use App\Models\ServicePackage;
+use App\Models\SparePart;
 use App\Models\Vehicle;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $totalVehicles = Schema::hasTable('vehicles')
-            ? Vehicle::query()->whereNull('deleted_at')->count()
-            : 0;
+        abort_unless(
+            $request->user('web')?->role === 'admin',
+            403
+        );
 
-        $availableVehicles = Schema::hasTable('vehicles')
-            ? Vehicle::query()->whereNull('deleted_at')->where('status', 'available')->count()
-            : 0;
+        return view('admin.dashboard', [
+            'totalVehicles' => Vehicle::count(),
+            'availableVehicles' => Vehicle::where(
+                'status',
+                'available'
+            )->count(),
+            'soldVehicles' => Vehicle::where(
+                'status',
+                'sold'
+            )->count(),
+            'reservedVehicles' => Vehicle::where(
+                'status',
+                'reserved'
+            )->count(),
 
-        $activePromos = Schema::hasTable('promotions')
-            ? Promotion::query()
-                ->whereNull('deleted_at')
+            'pendingPurchaseApplications' => PurchaseApplication::where(
+                'status',
+                'pending'
+            )->count(),
+
+            'pendingBookings' => ServiceBooking::where(
+                'status',
+                'pending'
+            )->count(),
+
+            'totalCategories' => Category::count(),
+            'totalGalleries' => Gallery::count(),
+
+            'activePromos' => Promotion::where(
+                'is_active',
+                true
+            )->count(),
+
+            'activeSales' => Sale::where(
+                'is_active',
+                true
+            )->count(),
+
+            'activeServicePackages' => ServicePackage::where(
+                'is_active',
+                true
+            )->count(),
+
+            'activeSpareParts' => SparePart::where(
+                'is_active',
+                true
+            )->count(),
+
+            'lowStockSpareParts' => SparePart::query()
                 ->where('is_active', true)
-                ->whereDate('start_date', '<=', today())
-                ->whereDate('end_date', '>=', today())
-                ->count()
-            : 0;
-
-        $activeSales = Schema::hasTable('sales')
-            ? Sale::query()->whereNull('deleted_at')->where('is_active', true)->count()
-            : 0;
-
-        $activeServicePackages = Schema::hasTable('service_packages')
-            ? ServicePackage::query()->whereNull('deleted_at')->where('is_active', true)->count()
-            : 0;
-
-        $pendingBookings = Schema::hasTable('service_bookings')
-            ? ServiceBooking::query()->whereNull('deleted_at')->where('status', 'pending')->count()
-            : 0;
-
-        return view('admin.dashboard', compact(
-            'totalVehicles',
-            'availableVehicles',
-            'activePromos',
-            'activeSales',
-            'activeServicePackages',
-            'pendingBookings'
-        ));
+                ->whereColumn('stock', '<=', 'min_stock')
+                ->count(),
+        ]);
     }
 }

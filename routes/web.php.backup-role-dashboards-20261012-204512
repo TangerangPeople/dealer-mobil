@@ -1,0 +1,384 @@
+<?php
+
+use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DealerSettingController;
+use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\MechanicServiceController;
+use App\Http\Controllers\Admin\PromotionController;
+use App\Http\Controllers\Admin\PurchaseApplicationController as AdminPurchaseApplicationController;
+use App\Http\Controllers\Admin\PurchaseApplicationDocumentController as AdminPurchaseApplicationDocumentController;
+use App\Http\Controllers\Admin\SaleController;
+use App\Http\Controllers\Admin\SalesReportController;
+use App\Http\Controllers\Admin\ServiceBookingController;
+use App\Http\Controllers\Admin\ServiceBookingSparePartController;
+use App\Http\Controllers\Admin\ServiceMechanicAssignmentController;
+use App\Http\Controllers\Admin\ServicePackageController;
+use App\Http\Controllers\Admin\SparePartController;
+use App\Http\Controllers\Admin\VehicleController;
+use App\Http\Controllers\Admin\VehicleImageController;
+use App\Http\Controllers\Customer\Auth\CustomerSessionController;
+use App\Http\Controllers\Customer\CustomerAccountController;
+use App\Http\Controllers\Customer\PurchaseApplicationController as CustomerPurchaseApplicationController;
+use App\Http\Controllers\Customer\PurchaseApplicationDocumentController as CustomerPurchaseApplicationDocumentController;
+use App\Http\Controllers\Public\PublicPageController;
+use App\Http\Controllers\Public\PurchaseApplicationController as PublicPurchaseApplicationController;
+use App\Http\Controllers\Public\ServiceController;
+use App\Http\Controllers\Staff\OwnerDashboardController;
+use App\Http\Controllers\Staff\SalesDashboardController;
+use App\Http\Controllers\Staff\MechanicDashboardController;
+use Illuminate\Support\Facades\Route;
+
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC WEBSITE
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/', [PublicPageController::class, 'home'])
+    ->name('home');
+
+Route::get('/tentang', [PublicPageController::class, 'about'])
+    ->name('about');
+
+Route::get('/mobil', [PublicPageController::class, 'vehiclesIndex'])
+    ->name('vehicles.index');
+
+Route::get('/mobil/{vehicle}', [PublicPageController::class, 'vehicleShow'])
+    ->name('vehicles.show');
+
+Route::get('/promo', [PublicPageController::class, 'promotionsIndex'])
+    ->name('promotions.index');
+
+Route::get('/promo/{promotion}', [PublicPageController::class, 'promotionShow'])
+    ->name('promotions.show');
+
+Route::get('/galeri', [PublicPageController::class, 'galleryIndex'])
+    ->name('gallery.index');
+
+Route::get('/layanan', [ServiceController::class, 'index'])
+    ->name('services.index');
+
+Route::get('/booking-service', [ServiceController::class, 'booking'])
+    ->name('booking-service');
+
+Route::post('/booking-service', [ServiceController::class, 'store'])
+    ->name('booking-service.store');
+
+Route::get('/kontak', [PublicPageController::class, 'contact'])
+    ->name('contact');
+
+Route::get('/simulasi-kredit', [PublicPageController::class, 'creditSimulation'])
+    ->name('credit-simulation');
+
+Route::get('/chat-sales/{sale?}', [PublicPageController::class, 'chatSales'])
+    ->whereNumber('sale')
+    ->name('sales.chat');
+
+
+/*
+|--------------------------------------------------------------------------
+| CUSTOMER AUTHENTICATION
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/daftar', [CustomerSessionController::class, 'register'])
+    ->name('customer.register');
+
+Route::post('/daftar', [CustomerSessionController::class, 'storeRegistration'])
+    ->middleware('throttle:customer-register')
+    ->name('customer.register.store');
+
+Route::get('/masuk', [CustomerSessionController::class, 'create'])
+    ->name('customer.login');
+
+Route::post('/masuk', [CustomerSessionController::class, 'storeLogin'])
+    ->middleware('throttle:customer-login')
+    ->name('customer.login.store');
+
+
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATED CUSTOMER
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('customer.authenticated')->group(function (): void {
+    Route::get('/akun', [CustomerAccountController::class, 'index'])
+        ->name('customer.account');
+
+    Route::post('/keluar', [CustomerSessionController::class, 'destroy'])
+        ->name('customer.logout');
+
+    Route::get('/pengajuan-pembelian', [CustomerPurchaseApplicationController::class, 'index'])
+        ->name('purchase.index');
+
+    Route::get('/pengajuan-pembelian/{vehicle:slug}', [PublicPurchaseApplicationController::class, 'create'])
+        ->name('purchase.create');
+
+    Route::post('/pengajuan-pembelian/{vehicle:slug}', [PublicPurchaseApplicationController::class, 'store'])
+        ->name('purchase.store');
+
+    Route::get('/akun/pengajuan-pembelian/{application}', [CustomerPurchaseApplicationController::class, 'show'])
+        ->name('purchase.show');
+
+    Route::get('/akun/pengajuan-pembelian/{application}/dokumen/{document}', [CustomerPurchaseApplicationDocumentController::class, 'download'])
+        ->name('purchase.documents.download');
+
+    Route::post('/akun/pengajuan-pembelian/{application}/whatsapp', [PublicPurchaseApplicationController::class, 'whatsapp'])
+        ->name('purchase.whatsapp');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| STAFF AUTHENTICATION
+|--------------------------------------------------------------------------
+| Admin, Owner, Sales, dan Mekanik menggunakan login staf.
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->group(function (): void {
+
+        /*
+        |--------------------------------------------------------------------------
+        | STAFF LOGIN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('guest')->group(function (): void {
+            Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+                ->name('login');
+
+            Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+                ->middleware('throttle:admin-login')
+                ->name('login.store');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STAFF DASHBOARD
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin,owner,sales,mechanic',
+        ])->group(function (): void {
+            Route::get('/', [DashboardController::class, 'index'])
+                ->name('dashboard');
+
+            Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+                ->name('logout');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES REPORT: ADMIN DAN OWNER
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin,owner',
+        ])->group(function (): void {
+            Route::get('/sales-report', [SalesReportController::class, 'index'])
+                ->name('sales-report.index');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | INVENTARIS SPAREPART: ADMIN DAN OWNER
+        |--------------------------------------------------------------------------
+        | Admin dapat mengelola data.
+        | Owner hanya memperoleh akses baca melalui route index.
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin,owner',
+        ])->group(function (): void {
+            Route::get('/spare-parts', [SparePartController::class, 'index'])
+                ->name('spare-parts.index');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PENGELOLAAN SPAREPART: ADMIN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin',
+        ])->group(function (): void {
+            Route::resource('spare-parts', SparePartController::class)
+                ->except(['index', 'show']);
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PENUGASAN MEKANIK: ADMIN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin',
+        ])->group(function (): void {
+            Route::get(
+                '/service-bookings/assignments',
+                [ServiceMechanicAssignmentController::class, 'index']
+            )->name('service-bookings.assignments');
+
+            Route::put(
+                '/service-bookings/{service_booking}/mechanic',
+                [ServiceMechanicAssignmentController::class, 'update']
+            )->name('service-bookings.mechanic.update');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | AREA KERJA MEKANIK
+        |--------------------------------------------------------------------------
+        | Mekanik hanya melihat booking yang ditugaskan kepadanya.
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:mechanic',
+        ])->group(function (): void {
+            Route::get(
+                '/mechanic/bookings',
+                [MechanicServiceController::class, 'index']
+            )->name('mechanic.bookings.index');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEMAKAIAN SPAREPART: ADMIN DAN MEKANIK
+        |--------------------------------------------------------------------------
+        | Controller tetap memeriksa bahwa mekanik yang login
+        | benar-benar ditugaskan pada booking yang bersangkutan.
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin,mechanic',
+        ])->group(function (): void {
+            Route::post(
+                '/service-bookings/{service_booking}/spare-parts',
+                [ServiceBookingSparePartController::class, 'store']
+            )->name('service-bookings.spare-parts.store');
+
+            Route::delete(
+                '/service-bookings/{service_booking}/spare-parts/{usage}',
+                [ServiceBookingSparePartController::class, 'destroy']
+            )->name('service-bookings.spare-parts.destroy');
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMIN-ONLY MANAGEMENT
+        |--------------------------------------------------------------------------
+        | Pengelolaan konten utama website tetap khusus Admin.
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware([
+            'auth',
+            'role:admin',
+        ])->group(function (): void {
+
+            // Kategori kendaraan
+            Route::resource('categories', CategoryController::class)
+                ->except('show');
+
+            // Data kendaraan
+            Route::resource('vehicles', VehicleController::class)
+                ->except('show');
+
+            // Gambar kendaraan
+            Route::post(
+                '/vehicles/{vehicle}/images',
+                [VehicleImageController::class, 'store']
+            )->name('vehicles.images.store');
+
+            Route::put(
+                '/vehicles/{vehicle}/images/{vehicleImage}',
+                [VehicleImageController::class, 'update']
+            )->name('vehicles.images.update');
+
+            Route::delete(
+                '/vehicles/{vehicle}/images/{vehicleImage}',
+                [VehicleImageController::class, 'destroy']
+            )->name('vehicles.images.destroy');
+
+            // Promosi
+            Route::resource('promotions', PromotionController::class)
+                ->except('show');
+
+            // Profil sales yang ditampilkan pada website
+            Route::resource('sales', SaleController::class)
+                ->except('show');
+
+            // Paket servis
+            Route::resource('service-packages', ServicePackageController::class)
+                ->except('show');
+
+            // Pengelolaan booking service
+            Route::resource('service-bookings', ServiceBookingController::class)
+                ->only(['index', 'update', 'destroy']);
+
+            // Pengajuan pembelian
+            Route::get(
+                '/purchase-applications',
+                [AdminPurchaseApplicationController::class, 'index']
+            )->name('purchase-applications.index');
+
+            Route::get(
+                '/purchase-applications/{application}',
+                [AdminPurchaseApplicationController::class, 'show']
+            )->name('purchase-applications.show');
+
+            Route::put(
+                '/purchase-applications/{application}/status',
+                [AdminPurchaseApplicationController::class, 'updateStatus']
+            )->name('purchase-applications.status');
+
+            Route::get(
+                '/purchase-applications/{application}/documents/{document}',
+                [AdminPurchaseApplicationDocumentController::class, 'download']
+            )->name('purchase-applications.documents.download');
+
+            // Galeri
+            Route::resource('galleries', GalleryController::class)
+                ->except('show');
+
+            // Pengaturan dealer
+            Route::get(
+                '/dealer-settings',
+                [DealerSettingController::class, 'index']
+            )->name('dealer-settings.index');
+
+            Route::put(
+                '/dealer-settings',
+                [DealerSettingController::class, 'update']
+            )->name('dealer-settings.update');
+        });
+    });

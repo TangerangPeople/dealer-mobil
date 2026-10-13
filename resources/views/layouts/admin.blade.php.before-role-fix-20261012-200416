@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#262626">
+        <title>@yield('title', 'Dashboard Administrator') | {{ config('app.name') }}</title>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    </head>
+
+    <body class="min-w-0 bg-[#f1f1f1] font-sans text-[#262626] antialiased">
+        @php
+            $adminNavigation = [
+                ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
+                ['label' => 'Kategori Kendaraan', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*'],
+                ['label' => 'Kendaraan', 'route' => 'admin.vehicles.index', 'active' => 'admin.vehicles.*'],
+                ['label' => 'Promo', 'route' => 'admin.promotions.index', 'active' => 'admin.promotions.*'],
+                ['label' => 'Sales', 'route' => 'admin.sales.index', 'active' => 'admin.sales.*'],
+                ['label' => 'Galeri', 'route' => 'admin.galleries.index', 'active' => 'admin.galleries.*'],
+                ['label' => 'Pengaturan Dealer', 'route' => 'admin.dealer-settings.index', 'active' => 'admin.dealer-settings.*'],
+                ['label' => 'Paket Servis', 'route' => 'admin.service-packages.index', 'active' => 'admin.service-packages.*'],
+                ['label' => 'Booking Service', 'route' => 'admin.service-bookings.index', 'active' => 'admin.service-bookings.*'],
+                ['label' => 'Pengajuan Pembelian', 'route' => 'admin.purchase-applications.index', 'active' => 'admin.purchase-applications.*'],
+            ];
+        @endphp
+
+        <a
+            href="#main-content"
+            class="sr-only left-4 top-4 z-[60] border border-[#262626] bg-white px-4 py-3 text-sm font-semibold focus:not-sr-only focus:absolute"
+        >
+            Lewati ke konten utama
+        </a>
+
+        <div class="min-h-screen min-w-0 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
+
+            {{-- SIDEBAR DESKTOP --}}
+            <aside class="hidden bg-[#262626] text-white lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto lg:px-5 lg:py-7 xl:px-6">
+                <a
+                    href="{{ route('admin.dashboard') }}"
+                    class="block break-words text-sm font-semibold uppercase tracking-[0.12em] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]"
+                >
+                    {{ config('app.name') }}
+                </a>
+{{-- role-menu:owner-admin --}}
+@if (in_array(auth()->user()?->role, ['admin', 'owner'], true))
+<a href="{{ route('admin.sales-report.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Laporan Penjualan
+</a>
+<a href="{{ route('admin.spare-parts.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Inventaris Sparepart
+</a>
+@endif
+
+{{-- role-menu:admin --}}
+@if (auth()->user()?->role === 'admin')
+<a href="{{ route('admin.service-bookings.assignments') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Penugasan Mekanik
+</a>
+@endif
+
+{{-- role-menu:mechanic --}}
+@if (auth()->user()?->role === 'mechanic')
+<a href="{{ route('admin.mechanic.bookings.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Booking Servis Saya
+</a>
+@endif
+
+                <p class="mt-3 text-xs uppercase tracking-[0.14em] text-[#bbbbbb]">
+                    Administrator
+                </p>
+
+                <nav class="mt-8 space-y-1" aria-label="Navigasi administrator">
+                    @foreach ($adminNavigation as $item)
+                        <a
+                            href="{{ route($item['route']) }}"
+                            @class([
+                                'block border-l-2 px-3 py-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#262626]',
+                                'border-white bg-white font-semibold text-[#262626]' => request()->routeIs($item['active']),
+                                'border-transparent text-white hover:border-[#bbbbbb] hover:bg-white/10' => ! request()->routeIs($item['active']),
+                            ])
+                            @if (request()->routeIs($item['active']))
+                                aria-current="page"
+                            @endif
+                        >
+                            {{ $item['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
+            </aside>
+
+            {{-- AREA UTAMA --}}
+            <div class="flex min-h-screen min-w-0 flex-col">
+
+                {{-- HEADER RESPONSIF --}}
+                <header class="relative z-30 border-b border-[#bbbbbb] bg-white px-4 py-4 sm:px-6 lg:px-8 xl:px-10">
+                    <div class="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-end">
+
+                        {{-- Identitas dan menu mobile/tablet --}}
+                        <div class="flex min-w-0 items-center justify-between gap-3 lg:hidden">
+                            <a
+                                href="{{ route('admin.dashboard') }}"
+                                class="min-w-0 flex-1 break-words text-sm font-semibold uppercase tracking-[0.1em] [overflow-wrap:anywhere]"
+                            >
+                                {{ config('app.name') }}
+                            </a>
+{{-- role-menu:owner-admin --}}
+@if (in_array(auth()->user()?->role, ['admin', 'owner'], true))
+<a href="{{ route('admin.sales-report.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Laporan Penjualan
+</a>
+<a href="{{ route('admin.spare-parts.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Inventaris Sparepart
+</a>
+@endif
+
+{{-- role-menu:admin --}}
+@if (auth()->user()?->role === 'admin')
+<a href="{{ route('admin.service-bookings.assignments') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Penugasan Mekanik
+</a>
+@endif
+
+{{-- role-menu:mechanic --}}
+@if (auth()->user()?->role === 'mechanic')
+<a href="{{ route('admin.mechanic.bookings.index') }}"
+   class="block px-4 py-3 text-sm text-[#404040] hover:bg-[#f1f1f1]">
+    Booking Servis Saya
+</a>
+@endif
+
+                            <details class="relative shrink-0">
+                                <summary
+                                    class="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 border border-[#262626] bg-[#262626] px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-[#262626] focus:ring-offset-2"
+                                >
+                                    <span>Menu Admin</span>
+                                    <span aria-hidden="true">☰</span>
+                                </summary>
+
+                                <nav
+                                    class="absolute right-0 top-full z-50 mt-2 max-h-[calc(100dvh-7rem)] w-72 max-w-[calc(100vw-2rem)] overflow-y-auto border border-[#bbbbbb] bg-white p-2 text-sm text-[#262626]"
+                                    aria-label="Navigasi administrator mobile"
+                                >
+                                    @foreach ($adminNavigation as $item)
+                                        <a
+                                            href="{{ route($item['route']) }}"
+                                            @class([
+                                                'block border-l-2 px-3 py-3 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#262626]',
+                                                'border-[#262626] bg-[#f1f1f1] font-semibold' => request()->routeIs($item['active']),
+                                                'border-transparent hover:bg-[#f1f1f1]' => ! request()->routeIs($item['active']),
+                                            ])
+                                            @if (request()->routeIs($item['active']))
+                                                aria-current="page"
+                                            @endif
+                                        >
+                                            {{ $item['label'] }}
+                                        </a>
+                                    @endforeach
+                                </nav>
+                            </details>
+                        </div>
+
+                        {{-- Akun administrator --}}
+                        <div class="flex min-w-0 items-center justify-between gap-3 sm:justify-end sm:gap-5">
+                            <p class="min-w-0 truncate text-sm text-[#262626]">
+                                {{ auth()->user()->name }}
+                            </p>
+
+                            <form
+                                method="POST"
+                                action="{{ route('admin.logout') }}"
+                                class="shrink-0"
+                            >
+                                @csrf
+
+                                <button
+                                    type="submit"
+                                    class="inline-flex min-h-11 items-center justify-center border border-[#262626] bg-white px-4 py-2 text-sm font-semibold text-[#262626] transition-colors hover:bg-[#262626] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#262626] focus:ring-offset-2"
+                                >
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </header>
+
+                {{-- KONTEN HALAMAN --}}
+                <main
+                    id="main-content"
+                    class="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 xl:px-10 2xl:px-14"
+                >
+                    @yield('content')
+                </main>
+            </div>
+        </div>
+    </body>
+</html>

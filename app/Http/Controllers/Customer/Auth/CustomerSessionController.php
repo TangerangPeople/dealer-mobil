@@ -7,6 +7,7 @@ use App\Http\Requests\CustomerLoginRequest;
 use App\Http\Requests\CustomerRegistrationRequest;
 use App\Models\DealerSetting;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,9 @@ class CustomerSessionController extends Controller
             return to_route('customer.account');
         }
 
-        return view('customer.auth.login', ['settings' => DealerSetting::query()->first()]);
+        return view('customer.auth.login', [
+            'settings' => DealerSetting::query()->first(),
+        ]);
     }
 
     public function register(): View|RedirectResponse
@@ -30,12 +33,16 @@ class CustomerSessionController extends Controller
             return to_route('customer.account');
         }
 
-        return view('customer.auth.register', ['settings' => DealerSetting::query()->first()]);
+        return view('customer.auth.register', [
+            'settings' => DealerSetting::query()->first(),
+        ]);
     }
 
-    public function storeRegistration(CustomerRegistrationRequest $request): RedirectResponse
-    {
+    public function storeRegistration(
+        CustomerRegistrationRequest $request
+    ): RedirectResponse {
         $validated = $request->validated();
+
         $customer = User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -48,13 +55,15 @@ class CustomerSessionController extends Controller
         Auth::guard('customer')->login($customer);
         $request->session()->regenerate();
 
-        $redirectTo = $this->purchaseRedirectTarget($request);
+        $redirectTo = $this->customerRedirectTarget($request);
 
-        return redirect()->intended($redirectTo)->with('success', 'Akun berhasil dibuat.');
+        return redirect($redirectTo)
+            ->with('success', 'Akun berhasil dibuat.');
     }
 
-    public function storeLogin(CustomerLoginRequest $request): RedirectResponse
-    {
+    public function storeLogin(
+        CustomerLoginRequest $request
+    ): RedirectResponse {
         $credentials = $request->validated();
 
         if (! Auth::guard('customer')->attempt([
@@ -69,19 +78,57 @@ class CustomerSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $redirectTo = $this->purchaseRedirectTarget($request);
+        $redirectTo = $this->customerRedirectTarget($request);
 
-        return redirect()->intended($redirectTo)->with('success', 'Login berhasil.');
+        return redirect($redirectTo)
+            ->with('success', 'Login berhasil.');
     }
 
-    protected function purchaseRedirectTarget(Request $request): string
+    /**
+     * Menentukan tujuan redirect yang diizinkan untuk pelanggan.
+     */
+    protected function customerRedirectTarget(Request $request): string
     {
         $vehicle = $request->query('vehicle')
             ?: session('selected_vehicle_slug')
-            ?: ($request->route('vehicle') instanceof \Illuminate\Database\Eloquent\Model ? $request->route('vehicle')->slug : $request->route('vehicle'));
+            ?: (
+                $request->route('vehicle') instanceof Model
+                    ? $request->route('vehicle')->slug
+                    : $request->route('vehicle')
+            );
 
         if (is_string($vehicle) && trim($vehicle) !== '') {
-            return route('purchase.create', ['vehicle' => $vehicle]);
+            return route('purchase.create', [
+                'vehicle' => $vehicle,
+            ]);
+        }
+
+        $intendedUrl = $request->session()->pull('url.intended');
+
+        if (is_string($intendedUrl)) {
+            $path = parse_url($intendedUrl, PHP_URL_PATH);
+            $query = parse_url($intendedUrl, PHP_URL_QUERY);
+
+            $customerPaths = [
+                '~^/akun/?$~D',
+                '~^/pengajuan-pembelian/?$~D',
+                '~^/pengajuan-pembelian/[^/]+/?$~D',
+                '~^/akun/pengajuan-pembelian/[^/]+(?:/dokumen/[^/]+)?/?$~D',
+            ];
+
+            if (
+                is_string($path)
+                && collect($customerPaths)->contains(
+                    fn (string $pattern): bool =>
+                        preg_match($pattern, $path) === 1
+                )
+            ) {
+                return $path . (
+                    is_string($query) && $query !== ''
+                        ? '?' . $query
+                        : ''
+                );
+            }
         }
 
         return route('customer.account');

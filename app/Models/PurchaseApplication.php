@@ -13,13 +13,24 @@ class PurchaseApplication extends Model
     /** @use HasFactory<PurchaseApplicationFactory> */
     use HasFactory;
 
-    public const STATUSES = ['pending', 'reviewing', 'approved', 'rejected', 'completed'];
+    public const STATUSES = [
+        'pending',
+        'reviewing',
+        'approved',
+        'rejected',
+        'completed',
+    ];
 
-    public const PURCHASE_METHODS = ['cash', 'financing', 'consultation'];
+    public const PURCHASE_METHODS = [
+        'cash',
+        'financing',
+        'consultation',
+    ];
 
     protected $fillable = [
         'application_number',
         'user_id',
+        'sales_id',
         'vehicle_id',
         'vehicle_brand',
         'vehicle_name',
@@ -45,19 +56,33 @@ class PurchaseApplication extends Model
         ];
     }
 
-    /** @return BelongsTo<User, $this> */
+    /**
+     * Akun pelanggan yang membuat pengajuan.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /** @return BelongsTo<Vehicle, $this> */
+    /**
+     * Sales yang bertanggung jawab atas pengajuan.
+     */
+    public function sales(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sales_id');
+    }
+
+    /**
+     * Kendaraan yang diajukan pelanggan.
+     */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
 
-    /** @return HasMany<PurchaseApplicationDocument, $this> */
+    /**
+     * Dokumen yang terkait dengan pengajuan.
+     */
     public function documents(): HasMany
     {
         return $this->hasMany(PurchaseApplicationDocument::class);
